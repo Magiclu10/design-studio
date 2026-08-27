@@ -1,22 +1,29 @@
-"""数据库模型 - 使用 Supabase PostgreSQL。"""
+"""数据库模型 - 支持 SQLite 和 PostgreSQL（带 SSL）。"""
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, ForeignKey, Boolean, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import os
 
-# 导入数据库配置
-from config.database import get_database_url
+# 数据库配置
+DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/studio.db")
 
-DATABASE_URL = get_database_url()
+# 创建引擎
+if DATABASE_URL.startswith("sqlite"):
+    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
+elif DATABASE_URL.startswith("postgresql"):
+    # Supabase PostgreSQL 需要 SSL
+    if "sslmode" not in DATABASE_URL:
+        separator = "&" if "?" in DATABASE_URL else "?"
+        DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
+    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
+else:
+    engine = create_engine(DATABASE_URL)
 
-# 创建引擎（PostgreSQL 不需要 check_same_thread）
-engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
 def get_db():
-    """获取数据库会话。"""
     db = SessionLocal()
     try:
         yield db
@@ -24,9 +31,12 @@ def get_db():
         db.close()
 
 def init_db():
-    """初始化数据库表。"""
-    Base.metadata.create_all(bind=engine)
-    print(f"Database connected: {DATABASE_URL[:50]}...")
+    try:
+        Base.metadata.create_all(bind=engine)
+        print(f"Database connected: {DATABASE_URL[:50]}...")
+    except Exception as e:
+        print(f"Database connection failed: {e}")
+        print("Running without database...")
 
 # ─── 项目管理 ───
 class Project(Base):
@@ -65,7 +75,6 @@ class ProjectNote(Base):
     created_at = Column(DateTime, default=datetime.now)
     project = relationship("Project", back_populates="notes")
 
-# ─── 客户管理 ───
 class Client(Base):
     __tablename__ = "clients"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -78,7 +87,6 @@ class Client(Base):
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
 
-# ─── 灵感库 ───
 class Inspiration(Base):
     __tablename__ = "inspirations"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -91,7 +99,6 @@ class Inspiration(Base):
     project_id = Column(Integer, ForeignKey("projects.id"), nullable=True)
     created_at = Column(DateTime, default=datetime.now)
 
-# ─── AI 生图记录 ───
 class AIGeneration(Base):
     __tablename__ = "ai_generations"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -107,7 +114,6 @@ class AIGeneration(Base):
     status = Column(String(20), default="pending")
     created_at = Column(DateTime, default=datetime.now)
 
-# ─── Agent 配置 ───
 class AgentConfig(Base):
     __tablename__ = "agent_configs"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -121,7 +127,6 @@ class AgentConfig(Base):
     status = Column(String(20), default="active")
     created_at = Column(DateTime, default=datetime.now)
 
-# ─── 材料库 ───
 class Material(Base):
     __tablename__ = "materials"
     id = Column(Integer, primary_key=True, autoincrement=True)
@@ -138,7 +143,6 @@ class Material(Base):
     notes = Column(Text)
     created_at = Column(DateTime, default=datetime.now)
 
-# ─── 用户认证 ───
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, autoincrement=True)
