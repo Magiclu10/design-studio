@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>路焉识设计工作站</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f0f2f5; --white: #ffffff; --primary: #1677ff; --primary-dark: #0958d9;
+  --primary-light: #e6f4ff; --gold: #faad14; --green: #00b42a; --red: #f53f3f;
+  --purple: #722ed1; --cyan: #13c2c2; --pink: #eb2f96;
+  --text: #1d2129; --text-2: #4e5969; --text-3: #86909c; --text-4: #c9cdd4;
+  --border: #e5e6eb; --shadow: 0 2px 8px rgba(0,0,0,0.04);
+  --shadow-md: 0 4px 16px rgba(0,0,0,0.08); --radius: 12px; --radius-sm: 8px;
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  background: var(--bg); color: var(--text); font-size: 14px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+/* 背景几何纹理 */
+body::before {
+  content: ''; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 80%, rgba(22,119,255,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 20%, rgba(250,173,20,0.03) 0%, transparent 50%),
+    radial-gradient(circle at 50% 50%, rgba(114,46,209,0.02) 0%, transparent 60%);
+  pointer-events: none; z-index: 0;
+}
+#app { position: relative; z-index: 1; min-height: 100vh; }
+
+/* ═══ 顶部导航 ═══ */
+.topnav {
+  background: var(--white); border-bottom: 1px solid var(--border);
+  padding: 0 32px; height: 56px; display: flex; align-items: center;
+  justify-content: space-between; position: sticky; top: 0; z-index: 100;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+}
+.topnav-left { display: flex; align-items: center; gap: 32px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%);
+  color: #fff; display: flex; align-items: center; justify-content: center;
+  font-size: 16px; font-weight: 700;
+}
+.logo-text { font-size: 16px; font-weight: 600; color: var(--text); }
+
+.nav-tabs { display: flex; gap: 4px; }
+.nav-tab {
+  padding: 6px 16px; border-radius: 6px; cursor: pointer;
+  font-size: 14px; color: var(--text-2); transition: all 0.15s;
+  border: none; background: none; font-family: inherit; font-weight: 400;
+}
+.nav-tab:hover { color: var(--text); background: #f5f5f5; }
+.nav-tab.active { color: var(--primary); font-weight: 500; background: var(--primary-light); }
+
+.topnav-right { display: flex; align-items: center; gap: 16px; }
+.search-box {
+  display: flex; align-items: center; gap: 8px; padding: 6px 12px;
+  background: #f7f8fa; border: 1px solid var(--border); border-radius: 6px;
+  width: 200px; transition: all 0.2s;
+}
+.search-box:focus-within { border-color: var(--primary); width: 260px; box-shadow: 0 0 0 2px rgba(22,119,255,0.08); }
+.search-box input { background: none; border: none; outline: none; font-size: 13px; font-family: inherit; color: var(--text); width: 100%; }
+.search-box input::placeholder { color: var(--text-4); }
+
+/* ═══ 内容区 ═══ */
+.main { max-width: 1200px; margin: 0 auto; padding: 24px 32px; }
+
+/* ═══ 欢迎横幅 ═══ */
+.welcome-banner {
+  background: linear-gradient(135deg, #1677ff 0%, #4096ff 50%, #69b1ff 100%);
+  border-radius: 16px; padding: 32px 36px; margin-bottom: 24px;
+  color: #fff; position: relative; overflow: hidden;
+}
+.welcome-banner::before {
+  content: ''; position: absolute; top: -40px; right: -40px;
+  width: 200px; height: 200px; border-radius: 50%;
+  background: rgba(255,255,255,0.08);
+}
+.welcome-banner::after {
+  content: ''; position: absolute; bottom: -60px; right: 80px;
+  width: 160px; height: 160px; border-radius: 50%;
+  background: rgba(255,255,255,0.05);
+}
+.welcome-title { font-size: 24px; font-weight: 700; margin-bottom: 8px; position: relative; z-index: 1; }
+.welcome-sub { font-size: 14px; opacity: 0.85; position: relative; z-index: 1; }
+.welcome-stats { display: flex; gap: 32px; margin-top: 20px; position: relative; z-index: 1; }
+.welcome-stat-item { }
+.welcome-stat-num { font-size: 28px; font-weight: 700; }
+.welcome-stat-label { font-size: 12px; opacity: 0.8; }
+
+/* ═══ 统计卡片 ═══ */
+.stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.stat-card {
+  background: var(--white); border-radius: var(--radius); padding: 20px 24px;
+  box-shadow: var(--shadow); transition: all 0.2s; position: relative; overflow: hidden;
+}
+.stat-card::after {
+  content: ''; position: absolute; top: 0; right: 0; width: 60px; height: 60px;
+  border-radius: 0 0 0 60px; opacity: 0.06;
+}
+.stat-card:nth-child(1)::after { background: var(--primary); }
+.stat-card:nth-child(2)::after { background: var(--gold); }
+.stat-card:nth-child(3)::after { background: var(--green); }
+.stat-card:nth-child(4)::after { background: var(--purple); }
+.stat-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.stat-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 12px; }
+.stat-label { font-size: 13px; color: var(--text-3); margin-bottom: 6px; }
+.stat-value { font-size: 28px; font-weight: 700; color: var(--text); letter-spacing: -0.5px; }
+
+/* ═══ 功能入口 ═══ */
+.quick-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.quick-card {
+  background: var(--white); border-radius: var(--radius); padding: 24px;
+  box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s;
+  display: flex; flex-direction: column; align-items: center; gap: 12px;
+  text-align: center; border: 1px solid transparent;
+}
+.quick-card:hover { box-shadow: var(--shadow-md); transform: translateY(-3px); border-color: var(--primary); }
+.quick-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center; font-size: 26px;
+  position: relative;
+}
+.quick-icon::after {
+  content: ''; position: absolute; inset: -4px; border-radius: 18px;
+  opacity: 0.15;
+}
+.quick-title { font-size: 14px; font-weight: 600; color: var(--text); }
+.quick-desc { font-size: 12px; color: var(--text-3); }
+
+/* ═══ 内容卡片 ═══ */
+.content-grid { display: grid; grid-template-columns: 1.5fr 1fr; gap: 16px; }
+.section-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.section-header { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.section-title { font-size: 15px; font-weight: 600; color: var(--text); }
+.section-more { font-size: 13px; color: var(--primary); cursor: pointer; border: none; background: none; font-family: inherit; }
+
+.list-row { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; border-bottom: 1px solid #f5f5f5; cursor: pointer; transition: background 0.15s; }
+.list-row:last-child { border-bottom: none; }
+.list-row:hover { background: #fafafa; }
+.list-left { display: flex; align-items: center; gap: 12px; }
+.list-avatar { width: 36px; height: 36px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600; }
+.list-info { }
+.list-name { font-size: 14px; font-weight: 500; color: var(--text); }
+.list-sub { font-size: 12px; color: var(--text-3); margin-top: 2px; }
+
+/* 状态 */
+.status { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 4px; font-size: 12px; font-weight: 500; }
+.status-blue { background: #e8f3ff; color: #1677ff; }
+.status-green { background: #e8ffea; color: #00b42a; }
+.status-yellow { background: #fff7e6; color: #faad14; }
+.status-purple { background: #f5e8ff; color: #722ed1; }
+.status-red { background: #ffece8; color: #f53f3f; }
+.status-cyan { background: #e6fffb; color: #13c2c2; }
+
+/* ═══ 页面通用 ═══ */
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.page-title { font-size: 18px; font-weight: 600; color: var(--text); }
+.filter-bar { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+.filter-btn { padding: 6px 16px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--text-2); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s; }
+.filter-btn:hover { border-color: var(--primary); color: var(--primary); }
+.filter-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* ═══ 项目 ═══ */
+.projects-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.project-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; border-left: 3px solid transparent; position: relative; }
+.project-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.project-card[data-status="方案"] { border-left-color: var(--primary); }
+.project-card[data-status="施工"] { border-left-color: var(--green); }
+.project-card[data-status="接洽中"] { border-left-color: var(--gold); }
+.project-card[data-status="深化"] { border-left-color: var(--purple); }
+.project-top { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+.project-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.project-meta { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.project-meta-label { font-size: 11px; color: var(--text-4); margin-bottom: 2px; }
+.project-meta-value { font-size: 13px; color: var(--text-2); }
+.project-footer { display: flex; justify-content: space-between; align-items: center; padding-top: 12px; border-top: 1px solid var(--border); font-size: 12px; color: var(--text-3); }
+
+/* 详情 */
+.detail-back { display: inline-flex; align-items: center; gap: 6px; padding: 8px 0; margin-bottom: 20px; cursor: pointer; color: var(--text-2); font-size: 14px; border: none; background: none; font-family: inherit; }
+.detail-back:hover { color: var(--primary); }
+.detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+.detail-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.detail-card h3 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border); }
+.info-row { display: flex; padding: 8px 0; border-bottom: 1px solid #f5f5f5; }
+.info-row:last-child { border-bottom: none; }
+.info-label { width: 80px; font-size: 13px; color: var(--text-3); flex-shrink: 0; }
+.info-value { font-size: 13px; color: var(--text); flex: 1; }
+.upload-zone { border: 1px dashed var(--border); border-radius: var(--radius-sm); padding: 20px; text-align: center; margin-bottom: 16px; cursor: pointer; transition: all 0.2s; }
+.upload-zone:hover { border-color: var(--primary); background: var(--primary-light); }
+.upload-zone input { display: none; }
+.upload-text { font-size: 13px; color: var(--text-3); }
+.note-input-row { display: flex; gap: 10px; margin-bottom: 16px; }
+.note-input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 13px; font-family: inherit; resize: none; outline: none; transition: border-color 0.15s; }
+.note-input:focus { border-color: var(--primary); }
+.note-item { padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+.note-item:last-child { border-bottom: none; }
+.note-content { font-size: 13px; color: var(--text-2); line-height: 1.6; }
+.note-time { font-size: 11px; color: var(--text-4); margin-top: 4px; }
+
+/* ═══ 灵感库 ═══ */
+.masonry { columns: 3; column-gap: 16px; }
+.insp-card { break-inside: avoid; margin-bottom: 16px; background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); transition: all 0.2s; position: relative; }
+.insp-card:hover { box-shadow: var(--shadow-md); }
+.insp-img img { width: 100%; display: block; }
+.insp-placeholder { height: 180px; background: linear-gradient(135deg, #f0f5ff 0%, #e6f4ff 50%, #f0f5ff 100%); display: flex; align-items: center; justify-content: center; color: var(--text-4); font-size: 32px; }
+.insp-body { padding: 14px 16px; }
+.insp-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.insp-desc { font-size: 12px; color: var(--text-3); margin-bottom: 8px; line-height: 1.4; }
+.insp-tags { display: flex; flex-wrap: wrap; gap: 4px; }
+.insp-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f5f5f5; color: var(--text-3); }
+.insp-delete { position: absolute; top: 8px; right: 8px; width: 24px; height: 24px; background: rgba(0,0,0,0.5); border: none; color: #fff; border-radius: 50%; cursor: pointer; font-size: 12px; display: none; align-items: center; justify-content: center; }
+.insp-card:hover .insp-delete { display: flex; }
+
+/* ═══ AI 生图 ═══ */
+.ai-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ai-panel { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+.ai-panel h3 { font-size: 15px; font-weight: 600; color: var(--text); margin-bottom: 20px; }
+.mode-select { display: flex; gap: 8px; margin-bottom: 16px; }
+.mode-btn { flex: 1; padding: 10px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--white); cursor: pointer; font-size: 13px; font-family: inherit; text-align: center; transition: all 0.15s; color: var(--text-2); }
+.mode-btn:hover { border-color: var(--primary); }
+.mode-btn.active { background: var(--primary); color: #fff; border-color: var(--primary); }
+.style-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+.style-chip { padding: 4px 12px; border-radius: 100px; border: 1px solid var(--border); background: var(--white); cursor: pointer; font-size: 12px; transition: all 0.15s; color: var(--text-2); }
+.style-chip:hover { border-color: var(--primary); }
+.style-chip.active { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+.ai-generate-btn { width: 100%; padding: 12px; border-radius: var(--radius-sm); background: linear-gradient(135deg, #1677ff 0%, #4096ff 100%); color: #fff; border: none; font-size: 15px; font-weight: 600; font-family: inherit; cursor: pointer; transition: all 0.2s; margin-top: 16px; }
+.ai-generate-btn:hover { box-shadow: 0 4px 16px rgba(22,119,255,0.3); }
+.ai-generate-btn:disabled { background: #c9cdd4; cursor: not-allowed; box-shadow: none; }
+
+/* ═══ Agent ═══ */
+.agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; }
+.agent-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); transition: all 0.2s; }
+.agent-card:hover { box-shadow: var(--shadow-md); }
+.agent-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.agent-avatar { width: 44px; height: 44px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; }
+.agent-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.agent-role { font-size: 12px; color: var(--text-3); }
+.agent-level { font-size: 12px; color: var(--text-3); margin-bottom: 10px; }
+.agent-level span { color: var(--primary); font-weight: 500; }
+.agent-caps { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 10px; }
+.agent-cap { padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f5f5f5; color: var(--text-2); }
+.agent-redlines { font-size: 11px; color: var(--text-3); margin-bottom: 12px; }
+.agent-redline-tag { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 10px; background: #ffece8; color: var(--red); margin: 1px; }
+.agent-actions { display: flex; gap: 8px; padding-top: 12px; border-top: 1px solid var(--border); }
+
+/* ═══ 客户 ═══ */
+.clients-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px; }
+.client-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); transition: all 0.2s; }
+.client-card:hover { box-shadow: var(--shadow-md); }
+.client-top { display: flex; align-items: center; gap: 14px; margin-bottom: 12px; }
+.client-avatar { width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: var(--primary); }
+.client-name { font-size: 15px; font-weight: 600; color: var(--text); }
+.client-contact { font-size: 12px; color: var(--text-3); }
+.client-info { font-size: 12px; color: var(--text-3); margin-bottom: 8px; }
+.client-projects { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); }
+.client-project-tag { padding: 2px 8px; border-radius: 4px; font-size: 11px; background: #f5f5f5; color: var(--text-2); cursor: pointer; }
+.client-project-tag:hover { background: var(--primary-light); color: var(--primary); }
+
+/* ═══ 材料库 ═══ */
+.materials-table { width: 100%; background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+.materials-table table { width: 100%; border-collapse: collapse; }
+.materials-table th { text-align: left; padding: 12px 16px; font-size: 12px; color: var(--text-3); font-weight: 500; background: #fafafa; border-bottom: 1px solid var(--border); }
+.materials-table td { padding: 12px 16px; font-size: 13px; color: var(--text-2); border-bottom: 1px solid #f5f5f5; }
+.materials-table tr:last-child td { border-bottom: none; }
+.materials-table tr:hover td { background: #fafafa; }
+.mat-name { font-weight: 500; color: var(--text); }
+
+/* ═══ 配色工具 ═══ */
+.color-palette-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 16px; }
+.palette-card { background: var(--white); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); cursor: pointer; transition: all 0.2s; }
+.palette-card:hover { box-shadow: var(--shadow-md); transform: translateY(-2px); }
+.palette-colors { display: flex; height: 80px; }
+.palette-color { flex: 1; }
+.palette-info { padding: 12px 14px; }
+.palette-name { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.palette-desc { font-size: 11px; color: var(--text-3); }
+
+/* ═══ 尺寸速查 ═══ */
+.dimension-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
+.dim-card { background: var(--white); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
+.dim-card h4 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.dim-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #f5f5f5; font-size: 13px; }
+.dim-item:last-child { border-bottom: none; }
+.dim-label { color: var(--text-2); }
+.dim-value { color: var(--primary); font-weight: 500; }
+
+/* ═══ 弹窗 ═══ */
+.modal-mask { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.15s; }
+.modal-box { background: var(--white); border-radius: var(--radius); width: 90%; max-width: 520px; max-height: 85vh; overflow-y: auto; box-shadow: 0 20px 60px rgba(0,0,0,0.15); animation: slideUp 0.2s; }
+.modal-box.lg { max-width: 660px; }
+.modal-head { display: flex; justify-content: space-between; align-items: center; padding: 20px 24px; border-bottom: 1px solid var(--border); }
+.modal-head h2 { font-size: 16px; font-weight: 600; color: var(--text); }
+.modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: #f5f5f5; cursor: pointer; font-size: 14px; color: var(--text-3); display: flex; align-items: center; justify-content: center; }
+.modal-close:hover { background: #e5e6eb; }
+.modal-body { padding: 24px; }
+.modal-foot { display: flex; justify-content: flex-end; gap: 10px; padding: 16px 24px; border-top: 1px solid var(--border); }
+@keyframes fadeIn { from { opacity: 0; } }
+@keyframes slideUp { from { opacity: 0; transform: translateY(12px); } }
+
+.form-item { margin-bottom: 16px; }
+.form-label { display: block; font-size: 13px; color: var(--text-2); margin-bottom: 6px; font-weight: 500; }
+.form-input, .form-textarea, .form-select { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); font-size: 14px; font-family: inherit; color: var(--text); outline: none; transition: border-color 0.15s; background: var(--white); }
+.form-input:focus, .form-textarea:focus, .form-select:focus { border-color: var(--primary); box-shadow: 0 0 0 2px rgba(22,119,255,0.08); }
+.form-input::placeholder, .form-textarea::placeholder { color: var(--text-4); }
+.form-textarea { resize: vertical; }
+.form-row { display: flex; gap: 16px; }
+.form-row .form-item { flex: 1; }
+
+.back-btn {
+  padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border);
+  background: var(--white); color: var(--text-2); cursor: pointer;
+  font-size: 13px; font-family: inherit; transition: all 0.15s;
+}
+.back-btn:hover { border-color: var(--primary); color: var(--primary); }
+.btn-primary { padding: 8px 20px; border-radius: var(--radius-sm); background: var(--primary); color: #fff; border: none; font-size: 14px; font-weight: 500; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.btn-primary:hover { background: #4096ff; }
+.btn-default { padding: 8px 20px; border-radius: var(--radius-sm); background: var(--white); color: var(--text-2); border: 1px solid var(--border); font-size: 14px; font-family: inherit; cursor: pointer; transition: all 0.15s; }
+.btn-default:hover { border-color: var(--primary); color: var(--primary); }
+.btn-danger { padding: 6px 12px; border-radius: var(--radius-sm); background: #fff; color: var(--red); border: 1px solid #ffccc7; font-size: 12px; font-family: inherit; cursor: pointer; }
+.btn-danger:hover { background: #fff2f0; }
+.btn-sm { padding: 5px 12px; font-size: 12px; }
+.empty { text-align: center; padding: 40px; color: var(--text-4); font-size: 14px; }
+
+/* ═══ 工具栏按钮组 ═══ */
+.toolbar-group { display: flex; gap: 8px; }
+.toolbar-btn { padding: 6px 14px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--text-2); cursor: pointer; font-size: 13px; font-family: inherit; transition: all 0.15s; display: flex; align-items: center; gap: 4px; }
+.toolbar-btn:hover { border-color: var(--primary); color: var(--primary); }
+.toolbar-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); }
+
+/* 工具箱卡片 v2 */
+.tool-card-v2 {
+  border-radius: 14px; padding: 20px 16px; cursor: pointer;
+  transition: all 0.25s; text-align: center; border: 1px solid transparent;
+  position: relative; overflow: hidden;
+}
+.tool-card-v2::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(255,255,255,0.5); opacity: 0; transition: opacity 0.25s;
+}
+.tool-card-v2:hover { transform: translateY(-4px); box-shadow: 0 8px 24px rgba(0,0,0,0.08); }
+.tool-card-v2:hover::before { opacity: 1; }
+.tool-icon-v2 {
+  width: 48px; height: 48px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; margin: 0 auto 12px; position: relative; z-index: 1;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+.tool-name-v2 { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 4px; position: relative; z-index: 1; }
+.tool-desc-v2 { font-size: 12px; color: var(--text-3); position: relative; z-index: 1; }
+
+/* 近期动态 */
+.activity-item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f5f5f5; }
+.activity-item:last-child { border-bottom: none; }
+.activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+.activity-content { flex: 1; }
+.activity-text { font-size: 13px; color: var(--text-2); }
+.activity-time { font-size: 11px; color: var(--text-4); margin-top: 2px; }
+
+@media (max-width: 1024px) {
+  .stats-grid, .quick-grid { grid-template-columns: repeat(2, 1fr); }
+  .content-grid, .ai-grid, .detail-grid { grid-template-columns: 1fr; }
+  .masonry { columns: 2; }
+  .tool-card { padding: 12px; }
+}
+@media (max-width: 768px) {
+  .topnav { padding: 0 16px; } .main { padding: 16px; }
+  .masonry { columns: 1; } .nav-tabs { display: none; }
+  .welcome-banner { padding: 24px; } .welcome-title { font-size: 20px; }
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <nav class="topnav">
+    <div class="topnav-left">
+      <div class="logo"><div class="logo-icon">路</div><div class="logo-text">设计工作站</div></div>
+      <div class="nav-tabs">
+        <button v-for="item in navItems" :key="item.id" :class="['nav-tab', {active: currentPage === item.id}]" @click="currentPage = item.id; selectedProject = null">{{ item.label }}</button>
+      </div>
+    </div>
+    <div class="topnav-right">
+      <div class="search-box"><span style="color:var(--text-4)">Q</span><input v-model="globalSearch" placeholder="搜索..." @input="doSearch"></div>
+    </div>
+  </nav>
+
+  <div class="main">
+
+    <!-- ═══ 首页 ═══ -->
+    <div v-if="currentPage === 'dashboard'">
+      <!-- 欢迎横幅 -->
+      <div class="welcome-banner">
+        <div class="welcome-title">你好，路焉识</div>
+        <div class="welcome-sub">设计工作站 · 让每一个空间都有温度</div>
+        <div class="welcome-stats">
+          <div class="welcome-stat-item"><div class="welcome-stat-num">{{ projects.length }}</div><div class="welcome-stat-label">项目总数</div></div>
+          <div class="welcome-stat-item"><div class="welcome-stat-num">{{ projects.filter(p=>['方案','深化','施工'].includes(p.status)).length }}</div><div class="welcome-stat-label">进行中</div></div>
+          <div class="welcome-stat-item"><div class="welcome-stat-num">{{ clients.length }}</div><div class="welcome-stat-label">客户</div></div>
+          <div class="welcome-stat-item">
+            <div style="display:flex;flex-direction:column;align-items:flex-start">
+              <div style="font-size:22px;font-weight:700;letter-spacing:1px;line-height:1">{{ currentTime?.split(' ')[1] || '--:--:--' }}</div>
+              <div style="font-size:12px;opacity:0.7;margin-top:4px">{{ currentTime?.split(' ')[0] || '----/--/--' }}</div>
+            </div>
+            <div class="welcome-stat-label">当前时间</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-grid">
+        <div class="quick-card" @click="currentPage='projects'; showNewProject=true">
+          <div class="quick-icon" style="background:linear-gradient(135deg,#1677ff,#4096ff);color:#fff;border-radius:14px">+</div>
+          <div class="quick-title">新建项目</div>
+          <div class="quick-desc">创建设计项目</div>
+        </div>
+        <div class="quick-card" @click="currentPage='clients'; showNewClient=true">
+          <div class="quick-icon" style="background:linear-gradient(135deg,#00b42a,#52c41a);color:#fff;border-radius:14px">+</div>
+          <div class="quick-title">新建客户</div>
+          <div class="quick-desc">添加客户信息</div>
+        </div>
+        <div class="quick-card" @click="currentPage='inspiration'">
+          <div class="quick-icon" style="background:linear-gradient(135deg,#faad14,#ffc53d);color:#fff;border-radius:14px">◈</div>
+          <div class="quick-title">灵感库</div>
+          <div class="quick-desc">{{ inspirations.length }} 个素材</div>
+        </div>
+        <div class="quick-card" @click="currentPage='ai'">
+          <div class="quick-icon" style="background:linear-gradient(135deg,#722ed1,#b37feb);color:#fff;border-radius:14px">✦</div>
+          <div class="quick-title">AI 生图</div>
+          <div class="quick-desc">生成效果图</div>
+        </div>
+      </div>
+
+      <!-- 工具箱 -->
+      <div style="margin-bottom:28px">
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:16px;display:flex;align-items:center;gap:8px">
+          <span style="width:4px;height:16px;background:var(--primary);border-radius:2px;display:inline-block"></span>
+          设计工具箱
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:14px">
+          <div class="tool-card-v2" @click="currentPage='agents'" style="background:linear-gradient(135deg,#fff7e6,#fff2e8)">
+            <div class="tool-icon-v2" style="background:#fa541c;color:#fff">◉</div>
+            <div class="tool-name-v2">Agent 工作台</div>
+            <div class="tool-desc-v2">{{ agents.length }} 个 Agent</div>
+          </div>
+          <div class="tool-card-v2" @click="currentPage='materials'" style="background:linear-gradient(135deg,#e6fffb,#e6f7ff)">
+            <div class="tool-icon-v2" style="background:#13c2c2;color:#fff">▤</div>
+            <div class="tool-name-v2">材料库</div>
+            <div class="tool-desc-v2">{{ materials.length }} 条记录</div>
+          </div>
+          <div class="tool-card-v2" @click="currentPage='colors'" style="background:linear-gradient(135deg,#f9f0ff,#f5e8ff)">
+            <div class="tool-icon-v2" style="background:#722ed1;color:#fff">◆</div>
+            <div class="tool-name-v2">配色工具</div>
+            <div class="tool-desc-v2">自定义 + 10 套预设</div>
+          </div>
+          <div class="tool-card-v2" @click="currentPage='dimensions'" style="background:linear-gradient(135deg,#e8f3ff,#f0f5ff)">
+            <div class="tool-icon-v2" style="background:#1677ff;color:#fff">📏</div>
+            <div class="tool-name-v2">尺寸速查</div>
+            <div class="tool-desc-v2">6 大空间人体工学</div>
+          </div>
+          <div class="tool-card-v2" @click="currentPage='pricing'" style="background:linear-gradient(135deg,#fff2e8,#fff7e6)">
+            <div class="tool-icon-v2" style="background:#fa541c;color:#fff">¥</div>
+            <div class="tool-name-v2">报价估算</div>
+            <div class="tool-desc-v2">面积×风格×档次</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="content-grid">
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">近期项目</div><button class="section-more" @click="currentPage='projects'">查看全部</button></div>
+          <div class="section-body">
+            <div v-if="projects.length===0" class="empty">暂无项目</div>
+            <div v-for="p in projects.slice(0,5)" :key="p.id" class="list-row" @click="viewProject(p)">
+              <div class="list-left">
+                <div class="list-avatar" style="background:#e8f3ff;color:#1677ff">{{ p.name[0] }}</div>
+                <div class="list-info"><div class="list-name">{{ p.name }}</div><div class="list-sub">{{ p.client_name||'未关联' }} · {{ p.style||'未定' }} {{ p.area ? '· '+p.area+'㎡' : '' }}</div></div>
+              </div>
+              <span :class="['status', statusClass(p.status)]">{{ p.status }}</span>
+            </div>
+          </div>
+        </div>
+        <div class="section-card">
+          <div class="section-header"><div class="section-title">客户</div><button class="section-more" @click="currentPage='clients'">查看全部</button></div>
+          <div class="section-body">
+            <div v-if="clients.length===0" class="empty">暂无客户</div>
+            <div v-for="c in clients.slice(0,5)" :key="c.id" class="list-row" @click="currentPage='clients'">
+              <div class="list-left">
+                <div class="list-avatar" style="background:#e8ffea;color:#00b42a">{{ c.name[0] }}</div>
+                <div class="list-info"><div class="list-name">{{ c.name }}</div><div class="list-sub">{{ c.phone||c.wechat||'' }}</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 项目 ═══ -->
+    <div v-if="currentPage === 'projects'">
+      <div class="page-header">
+        <div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'; selectedProject=null">← 返回</button><div class="page-title">项目管理</div></div>
+        <div class="toolbar-group">
+          <button class="toolbar-btn" @click="exportProjects">导出</button>
+          <button class="toolbar-btn primary" @click="showNewProject=true">+ 新建项目</button>
+        </div>
+      </div>
+      <div class="filter-bar">
+        <button v-for="s in ['全部','接洽中','量房','方案','深化','施工','完工']" :class="['filter-btn', {active: projectFilter===s}]" @click="projectFilter=s">{{ s }}</button>
+      </div>
+      <div v-if="!selectedProject" class="projects-grid">
+        <div v-for="p in filteredProjects" :key="p.id" class="project-card" :data-status="p.status" @click="viewProject(p)">
+          <div class="project-top"><div class="project-name">{{ p.name }}</div><span :class="['status', statusClass(p.status)]">{{ p.status }}</span></div>
+          <div class="project-meta">
+            <div><div class="project-meta-label">客户</div><div class="project-meta-value">{{ p.client_name||'—' }}</div></div>
+            <div><div class="project-meta-label">面积</div><div class="project-meta-value">{{ p.area?p.area+'㎡':'—' }}</div></div>
+            <div><div class="project-meta-label">风格</div><div class="project-meta-value">{{ p.style||'—' }}</div></div>
+            <div><div class="project-meta-label">预算</div><div class="project-meta-value">{{ p.budget||'—' }}</div></div>
+          </div>
+          <div class="project-footer"><span>{{ p.file_count }} 个文件</span><span>{{ p.updated_at?.split(' ')[0] }}</span></div>
+        </div>
+        <div v-if="filteredProjects.length===0" class="empty">暂无项目</div>
+      </div>
+      <div v-if="selectedProject" class="detail-panel">
+        <button class="detail-back" @click="selectedProject=null">← 返回列表</button>
+        <div style="display:flex;gap:10px;align-items:center;margin-bottom:20px">
+          <select v-model="selectedProject.status" @change="updateProjectStatus" class="form-select" style="width:auto;padding:6px 12px;font-size:13px"><option v-for="s in ['接洽中','量房','方案','深化','施工','完工']" :value="s">{{ s }}</option></select>
+          <button class="btn-danger" @click="deleteProject(selectedProject.id)">删除</button>
+        </div>
+        <div class="detail-grid">
+          <div class="detail-card" style="grid-column:1/-1"><h3>项目信息</h3>
+            <div class="info-row"><div class="info-label">客户</div><div class="info-value">{{ selectedProject.client_name||'—' }}</div></div>
+            <div class="info-row"><div class="info-label">地址</div><div class="info-value">{{ selectedProject.address||'—' }}</div></div>
+            <div class="info-row"><div class="info-label">面积</div><div class="info-value">{{ selectedProject.area?selectedProject.area+'㎡':'—' }}</div></div>
+            <div class="info-row"><div class="info-label">风格</div><div class="info-value">{{ selectedProject.style||'—' }}</div></div>
+            <div class="info-row"><div class="info-label">预算</div><div class="info-value">{{ selectedProject.budget||'—' }}</div></div>
+            <div v-if="selectedProject.description" class="info-row"><div class="info-label">描述</div><div class="info-value">{{ selectedProject.description }}</div></div>
+          </div>
+          <div class="detail-card"><h3>文件 ({{ (selectedProject.files||[]).length }})</h3>
+            <div class="upload-zone" @dragover.prevent @drop.prevent="handleDrop" @click="$refs.fileInput.click()"><input type="file" ref="fileInput" @change="handleUpload" multiple><div class="upload-text">点击或拖拽上传</div></div>
+            <div v-for="f in selectedProject.files" :key="f.id" class="list-row" style="padding:10px 0"><div class="list-left"><span>{{ getFileIcon(f.file_type) }}</span><span style="font-size:13px">{{ f.filename }}</span></div><span class="status status-blue" style="font-size:11px">{{ f.file_type }}</span></div>
+          </div>
+          <div class="detail-card"><h3>沟通记录</h3>
+            <div class="note-input-row"><textarea class="note-input" v-model="newNote" placeholder="添加记录..." rows="2"></textarea><button class="btn-primary btn-sm" @click="addNote">添加</button></div>
+            <div v-for="n in selectedProject.notes" :key="n.id" class="note-item"><div class="note-content">{{ n.content }}</div><div class="note-time">{{ n.note_type }} · {{ n.created_at?.split('.')[0] }}</div></div>
+          </div>
+        </div>
+      </div>
+      <div v-if="showNewProject" class="modal-mask" @click.self="showNewProject=false">
+        <div class="modal-box"><div class="modal-head"><h2>新建项目</h2><button class="modal-close" @click="showNewProject=false">×</button></div><div class="modal-body">
+          <div class="form-item"><label class="form-label">项目名称</label><input class="form-input" v-model="newProject.name" placeholder="例：万科翡翠135㎡"></div>
+          <div class="form-item"><label class="form-label">关联客户</label><select class="form-select" v-model="newProject.client_name"><option value="">不关联</option><option v-for="c in clients" :value="c.name">{{ c.name }}</option></select></div>
+          <div class="form-item"><label class="form-label">地址</label><input class="form-input" v-model="newProject.address"></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">面积 (㎡)</label><input class="form-input" v-model.number="newProject.area" type="number"></div><div class="form-item"><label class="form-label">风格</label><select class="form-select" v-model="newProject.style"><option value="">未定</option><option>现代简约</option><option>北欧风</option><option>侘寂</option><option>新中式</option><option>法式</option><option>工业风</option><option>中古风</option><option>极简</option></select></div></div>
+          <div class="form-item"><label class="form-label">预算</label><input class="form-input" v-model="newProject.budget" placeholder="30-50万"></div>
+          <div class="form-item"><label class="form-label">描述</label><textarea class="form-textarea" v-model="newProject.description" rows="3"></textarea></div>
+        </div><div class="modal-foot"><button class="btn-default" @click="showNewProject=false">取消</button><button class="btn-primary" @click="createProject">创建</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 客户 ═══ -->
+    <div v-if="currentPage === 'clients'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">客户管理</div></div><button class="btn-primary" @click="showNewClient=true">+ 新建客户</button></div>
+      <div class="clients-grid">
+        <div v-for="c in clients" :key="c.id" class="client-card">
+          <div class="client-top"><div class="client-avatar">{{ c.name[0] }}</div><div><div class="client-name">{{ c.name }}</div><div class="client-contact">{{ c.phone||'' }} {{ c.wechat?'· '+c.wechat:'' }}</div></div></div>
+          <div v-if="c.source" class="client-info">来源：{{ c.source }}</div>
+          <div v-if="c.notes" class="client-info">{{ c.notes }}</div>
+          <div class="client-projects" v-if="getClientProjects(c.name).length"><span v-for="p in getClientProjects(c.name)" :key="p.id" class="client-project-tag" @click="viewProject(p)">{{ p.name }}</span></div>
+          <div style="display:flex;gap:8px;margin-top:12px"><button class="btn-default btn-sm" @click="editClient(c)">编辑</button><button class="btn-danger" @click="deleteClient(c.id)">删除</button></div>
+        </div>
+        <div v-if="clients.length===0" class="empty">暂无客户</div>
+      </div>
+      <div v-if="showNewClient" class="modal-mask" @click.self="showNewClient=false;editingClient=null">
+        <div class="modal-box"><div class="modal-head"><h2>{{ editingClient?'编辑':'新建' }}客户</h2><button class="modal-close" @click="showNewClient=false;editingClient=null">×</button></div><div class="modal-body">
+          <div class="form-item"><label class="form-label">姓名</label><input class="form-input" v-model="clientForm.name"></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">电话</label><input class="form-input" v-model="clientForm.phone"></div><div class="form-item"><label class="form-label">微信</label><input class="form-input" v-model="clientForm.wechat"></div></div>
+          <div class="form-item"><label class="form-label">来源</label><input class="form-input" v-model="clientForm.source"></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">预算</label><input class="form-input" v-model="clientForm.budget_range"></div><div class="form-item"><label class="form-label">偏好风格</label><input class="form-input" v-model="clientForm.preferred_style"></div></div>
+          <div class="form-item"><label class="form-label">备注</label><textarea class="form-textarea" v-model="clientForm.notes" rows="3"></textarea></div>
+        </div><div class="modal-foot"><button class="btn-default" @click="showNewClient=false;editingClient=null">取消</button><button class="btn-primary" @click="saveClient">{{ editingClient?'保存':'创建' }}</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 灵感 ═══ -->
+    <div v-if="currentPage === 'inspiration'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">灵感库</div></div>
+        <div class="toolbar-group"><button class="toolbar-btn" :class="{primary: inspTab==='online'}" @click="inspTab='online'">在线灵感</button><button class="toolbar-btn" :class="{primary: inspTab==='local'}" @click="inspTab='local'">我的收藏</button><button class="toolbar-btn primary" @click="showNewInspiration=true">+ 手动添加</button></div>
+      </div>
+
+      <!-- 在线灵感 -->
+      <div v-if="inspTab==='online'">
+        <div style="margin-bottom:16px;padding:16px;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow);display:flex;align-items:center;gap:16px">
+          <div style="font-size:13px;color:var(--text-2)">数据来源：</div>
+          <span v-for="s in onlineSources" :key="s.id" class="status status-blue" style="cursor:pointer">{{ s.name }}</span>
+          <div style="flex:1"></div>
+          <div style="font-size:12px;color:var(--text-3)">
+            <span v-if="updateStatus.last_update">最后更新：{{ updateStatus.last_update?.split('T')[0] }} {{ updateStatus.last_update?.split('T')[1]?.split('.')[0] }}</span>
+            <span v-else>暂无更新</span>
+            <span style="margin-left:12px">缓存：{{ updateStatus.total_cached || 0 }} 条</span>
+          </div>
+          <button class="btn-default btn-sm" @click="forceUpdate" :disabled="isUpdating">{{ isUpdating ? '更新中...' : '立即更新' }}</button>
+          <button class="btn-primary btn-sm" @click="batchImportInspirations" :disabled="!selectedInspirations.length">导入选中 ({{ selectedInspirations.length }})</button>
+          <button class="btn-default btn-sm" @click="selectAllInspirations">全选</button>
+        </div>
+        <div class="masonry">
+          <div v-for="(item, idx) in onlineInspirations" :key="idx" class="insp-card" style="border:2px solid transparent" :style="{borderColor: selectedInspirations.includes(idx) ? 'var(--primary)' : 'transparent'}">
+            <div v-if="item.image_url" class="insp-img"><img :src="item.image_url" loading="lazy"></div>
+            <div v-else class="insp-placeholder">+</div>
+            <div class="insp-body">
+              <div class="insp-title">{{ item.title }}</div>
+              <div class="insp-desc">{{ item.description }}</div>
+              <div class="insp-tags"><span v-for="t in item.tags" class="insp-tag">{{ t }}</span></div>
+              <div style="display:flex;gap:8px;margin-top:10px">
+                <button class="btn-primary btn-sm" @click="importSingleInspiration(idx)">导入</button>
+                <button class="btn-default btn-sm" @click="toggleSelectInspiration(idx)">{{ selectedInspirations.includes(idx) ? '取消选择' : '选择' }}</button>
+              </div>
+            </div>
+            <div style="position:absolute;top:8px;left:8px;padding:2px 8px;border-radius:4px;font-size:10px;background:rgba(0,0,0,0.5);color:#fff">{{ item.source }}</div>
+          </div>
+        </div>
+        <div v-if="!onlineInspirations.length" class="empty">加载中...</div>
+      </div>
+
+      <!-- 本地收藏 -->
+      <div v-if="inspTab==='local'">
+        <div class="filter-bar"><button v-for="c in ['全部','风格','空间','材质','色彩','品牌']" :class="['filter-btn', {active: inspFilter===c}]" @click="inspFilter=c">{{ c }}</button></div>
+        <div class="masonry">
+          <div v-for="i in filteredInspirations" :key="i.id" class="insp-card">
+            <div v-if="i.image_path" class="insp-img"><img :src="i.image_path"></div>
+            <div v-else class="insp-placeholder">+</div>
+            <div class="insp-body"><div class="insp-title">{{ i.title }}</div><div v-if="i.description" class="insp-desc">{{ i.description }}</div><div class="insp-tags"><span v-for="t in i.tags" class="insp-tag">{{ t }}</span></div></div>
+            <button class="insp-delete" @click="deleteInspiration(i.id)">×</button>
+          </div>
+        </div>
+        <div v-if="filteredInspirations.length===0" class="empty">灵感库为空，去「在线灵感」导入</div>
+      </div>
+
+      <div v-if="showNewInspiration" class="modal-mask" @click.self="showNewInspiration=false">
+        <div class="modal-box"><div class="modal-head"><h2>添加灵感</h2><button class="modal-close" @click="showNewInspiration=false">×</button></div><div class="modal-body">
+          <div class="form-item"><label class="form-label">标题</label><input class="form-input" v-model="newInsp.title"></div>
+          <div class="form-item"><label class="form-label">描述</label><textarea class="form-textarea" v-model="newInsp.description" rows="2"></textarea></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">分类</label><select class="form-select" v-model="newInsp.category"><option value="">未分类</option><option>风格</option><option>空间</option><option>材质</option><option>色彩</option><option>品牌</option></select></div><div class="form-item"><label class="form-label">标签</label><input class="form-input" v-model="newInsp.tagsInput" placeholder="逗号分隔"></div></div>
+        </div><div class="modal-foot"><button class="btn-default" @click="showNewInspiration=false">取消</button><button class="btn-primary" @click="createInspiration">添加</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ AI 生图 ═══ -->
+    <div v-if="currentPage === 'ai'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">AI 生图</div></div></div>
+      <div class="ai-grid">
+        <div class="ai-panel"><h3>生成设置</h3>
+          <div class="form-item"><label class="form-label">模式</label><div class="mode-select"><button v-for="m in [{id:'txt2img',n:'文生图'},{id:'img2img',n:'图生图'},{id:'style_transfer',n:'风格迁移'},{id:'inpaint',n:'局部重绘'}]" :class="['mode-btn', {active: aiGen.mode===m.id}]" @click="aiGen.mode=m.id">{{ m.n }}</button></div></div>
+          <div class="form-item"><label class="form-label">提示词</label><textarea class="form-textarea" v-model="aiGen.prompt" placeholder="描述你想要的室内空间..." rows="4"></textarea></div>
+          <div class="form-item"><label class="form-label">风格预设</label><div class="style-chips"><span v-for="s in aiStyles" :class="['style-chip', {active: aiGen.style===s.id}]" @click="aiGen.style=aiGen.style===s.id?'':s.id">{{ s.name }}</span></div></div>
+          <div class="form-item"><label class="form-label">反向提示词</label><input class="form-input" v-model="aiGen.negative_prompt"></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">宽度</label><input class="form-input" v-model.number="aiGen.width" type="number"></div><div class="form-item"><label class="form-label">高度</label><input class="form-input" v-model.number="aiGen.height" type="number"></div></div>
+          <button class="ai-generate-btn" @click="generateImage" :disabled="!aiGen.prompt">生成效果图</button>
+          <div v-if="aiMessage" style="margin-top:12px;padding:12px;background:#e8f3ff;border-radius:8px;font-size:13px;color:#1677ff">{{ aiMessage }}</div>
+        </div>
+        <div class="ai-panel"><h3>生成历史</h3>
+          <div v-if="aiHistory.length===0" class="empty">待接入 NanoBanana API</div>
+          <div v-for="g in aiHistory" :key="g.id" style="padding:12px;background:#f7f8fa;border-radius:8px;margin-bottom:8px"><div style="font-size:12px;color:var(--text-2);margin-bottom:8px">{{ g.prompt }}</div><div style="display:flex;gap:4px"><span class="status status-blue">{{ g.mode }}</span><span class="status status-yellow">{{ g.style||'默认' }}</span></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ Agent ═══ -->
+    <div v-if="currentPage === 'agents'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">Agent 工作台</div></div><button class="btn-primary" @click="showNewAgent=true">+ 新增 Agent</button></div>
+      <div class="agents-grid">
+        <div v-for="a in agents" :key="a.id" class="agent-card">
+          <div class="agent-top"><div class="agent-avatar" :style="{background: getAgentColor(a.role)}">{{ a.display_name?.[0]||a.name[0] }}</div><div><div class="agent-name">{{ a.display_name||a.name }}</div><div class="agent-role">{{ a.role }}</div></div></div>
+          <div class="agent-level">自主权：<span>{{ a.autonomy_level }}</span></div>
+          <div class="agent-caps"><span v-for="c in a.capabilities" class="agent-cap">{{ c }}</span></div>
+          <div v-if="a.red_lines?.length" class="agent-redlines"><span v-for="r in a.red_lines" class="agent-redline-tag">{{ r }}</span></div>
+          <div class="agent-actions"><button class="btn-default btn-sm" @click="editAgent(a)">编辑</button><button class="btn-danger" @click="deleteAgent(a.id)">删除</button></div>
+        </div>
+        <div v-if="agents.length===0" class="empty">暂无 Agent</div>
+      </div>
+      <div v-if="showNewAgent" class="modal-mask" @click.self="showNewAgent=false;editingAgent=null">
+        <div class="modal-box lg"><div class="modal-head"><h2>{{ editingAgent?'编辑':'新增' }} Agent</h2><button class="modal-close" @click="showNewAgent=false;editingAgent=null">×</button></div><div class="modal-body">
+          <div class="form-row"><div class="form-item"><label class="form-label">标识名</label><input class="form-input" v-model="agentForm.name" :disabled="!!editingAgent"></div><div class="form-item"><label class="form-label">显示名</label><input class="form-input" v-model="agentForm.display_name"></div></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">角色</label><select class="form-select" v-model="agentForm.role"><option>设计</option><option>商务</option><option>审查</option><option>内容</option><option>助手</option></select></div><div class="form-item"><label class="form-label">自主权</label><select class="form-select" v-model="agentForm.autonomy_level"><option>执行</option><option>独立初稿</option><option>全流程</option></select></div></div>
+          <div class="form-item"><label class="form-label">系统提示词</label><textarea class="form-textarea" v-model="agentForm.system_prompt" rows="5"></textarea></div>
+          <div class="form-item"><label class="form-label">能力（逗号分隔）</label><input class="form-input" v-model="agentForm.capabilitiesInput"></div>
+          <div class="form-item"><label class="form-label">红线（逗号分隔）</label><input class="form-input" v-model="agentForm.red_linesInput"></div>
+        </div><div class="modal-foot"><button class="btn-default" @click="showNewAgent=false;editingAgent=null">取消</button><button class="btn-primary" @click="saveAgent">{{ editingAgent?'保存':'创建' }}</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 材料库 ═══ -->
+    <div v-if="currentPage === 'materials'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">材料库</div></div>
+        <div class="toolbar-group"><button class="toolbar-btn" :class="{primary: matTab==='online'}" @click="matTab='online'">在线材料</button><button class="toolbar-btn" :class="{primary: matTab==='local'}" @click="matTab='local'">本地材料</button><button class="toolbar-btn primary" @click="showNewMaterial=true">+ 手动添加</button></div>
+      </div>
+
+      <!-- 在线材料 -->
+      <div v-if="matTab==='online'">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;padding:14px 18px;background:var(--white);border-radius:var(--radius);box-shadow:var(--shadow)">
+          <div class="filter-bar" style="margin-bottom:0"><button v-for="c in ['全部','地板','瓷砖','墙漆','木材','石材','五金','灯具']" :class="['filter-btn', {active: onlineMatFilter===c}]" @click="onlineMatFilter=c">{{ c }}</button></div>
+          <div style="font-size:13px;color:var(--text-2);font-weight:500">
+            <span v-if="updateStatus.last_update">{{ updateStatus.last_update?.split('T')[0] }} {{ updateStatus.last_update?.split('T')[1]?.split('.')[0] }}</span>
+            <span v-else>{{ currentTime }}</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px">
+          <div v-for="(m, idx) in filteredOnlineMaterials" :key="idx" style="background:var(--white);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);transition:all 0.2s;cursor:pointer" @click="importSingleMaterial(idx)">
+            <div v-if="m.image_url" style="height:140px;overflow:hidden"><img :src="m.image_url" style="width:100%;height:100%;object-fit:cover"></div>
+            <div v-else style="height:140px;background:#f5f5f5;display:flex;align-items:center;justify-content:center;color:var(--text-4);font-size:24px">📷</div>
+            <div style="padding:14px">
+              <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:6px">{{ m.name }}</div>
+              <div style="display:flex;gap:8px;margin-bottom:8px">
+                <span class="status status-blue" style="font-size:10px">{{ m.category }}</span>
+                <span class="status status-green" style="font-size:10px">{{ m.brand }}</span>
+              </div>
+              <div style="font-size:11px;color:var(--text-4);margin-bottom:4px">{{ m.spec }}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <div style="font-size:16px;font-weight:700;color:var(--primary)">¥{{ m.price }}<span style="font-size:11px;font-weight:400;color:var(--text-3)">/{{ m.unit }}</span></div>
+                <button class="btn-primary btn-sm" @click.stop="importSingleMaterial(idx)">导入</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 本地材料 -->
+      <div v-if="matTab==='local'">
+        <div class="filter-bar"><button v-for="c in ['全部','地板','墙漆','瓷砖','石材','木材','五金','灯具']" :class="['filter-btn', {active: matFilter===c}]" @click="matFilter=c">{{ c }}</button></div>
+        <div class="materials-table"><table><thead><tr><th>名称</th><th>分类</th><th>品牌</th><th>规格</th><th>单价</th><th>色系</th><th></th></tr></thead><tbody>
+          <tr v-for="m in filteredMaterials" :key="m.id"><td class="mat-name">{{ m.name }}</td><td><span class="status status-blue">{{ m.category }}</span></td><td>{{ m.brand||'—' }}</td><td>{{ m.spec||'—' }}</td><td>{{ m.price?'¥'+m.price+'/'+m.unit:'—' }}</td><td>{{ m.color||'—' }}</td><td><button class="btn-danger" @click="deleteMaterial(m.id)">删</button></td></tr>
+        </tbody></table></div>
+        <div v-if="filteredMaterials.length===0" class="empty">材料库为空，去「在线材料」导入</div>
+      </div>
+
+      <div v-if="showNewMaterial" class="modal-mask" @click.self="showNewMaterial=false">
+        <div class="modal-box"><div class="modal-head"><h2>添加材料</h2><button class="modal-close" @click="showNewMaterial=false">×</button></div><div class="modal-body">
+          <div class="form-item"><label class="form-label">名称</label><input class="form-input" v-model="newMat.name"></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">分类</label><select class="form-select" v-model="newMat.category"><option>地板</option><option>墙漆</option><option>瓷砖</option><option>石材</option><option>木材</option><option>五金</option><option>灯具</option></select></div><div class="form-item"><label class="form-label">品牌</label><input class="form-input" v-model="newMat.brand"></div></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">规格</label><input class="form-input" v-model="newMat.spec"></div><div class="form-item"><label class="form-label">单价</label><input class="form-input" v-model.number="newMat.price" type="number"></div></div>
+          <div class="form-row"><div class="form-item"><label class="form-label">单位</label><input class="form-input" v-model="newMat.unit"></div><div class="form-item"><label class="form-label">色系</label><input class="form-input" v-model="newMat.color"></div></div>
+        </div><div class="modal-foot"><button class="btn-default" @click="showNewMaterial=false">取消</button><button class="btn-primary" @click="createMaterial">添加</button></div></div>
+      </div>
+    </div>
+
+    <!-- ═══ 配色工具 ═══ -->
+    <div v-if="currentPage === 'colors'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">配色工具</div></div></div>
+
+      <!-- 自定义配色生成器 -->
+      <div style="background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:24px">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">自定义配色</div>
+        <div style="display:flex;gap:12px;align-items:end;flex-wrap:wrap">
+          <div style="flex:1;min-width:200px">
+            <label style="display:block;font-size:12px;color:var(--text-3);margin-bottom:6px">主色调</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="color" v-model="customColor" style="width:48px;height:36px;border:1px solid var(--border);border-radius:6px;cursor:pointer;padding:2px">
+              <input class="form-input" v-model="customColor" style="width:120px;font-family:monospace" readonly>
+            </div>
+          </div>
+          <button class="btn-primary" @click="generateHarmony">生成配色方案</button>
+        </div>
+        <div v-if="harmonyColors.length" style="margin-top:16px">
+          <div style="display:flex;gap:8px;margin-bottom:12px">
+            <div v-for="(c,i) in harmonyColors" :key="i" style="flex:1;text-align:center">
+              <div :style="{background:c, height:'60px', borderRadius:'8px', marginBottom:'6px'}"></div>
+              <div style="font-size:11px;font-family:monospace;color:var(--text-2);cursor:pointer" @click="copyColor(c)">{{ c }}</div>
+            </div>
+          </div>
+          <div style="font-size:12px;color:var(--text-3)">点击色值可复制</div>
+        </div>
+      </div>
+
+      <!-- 预设方案 -->
+      <div style="font-size:15px;font-weight:600;margin-bottom:14px">室内设计配色方案</div>
+      <div class="color-palette-grid">
+        <div v-for="p in colorPalettes" :key="p.name" class="palette-card" @click="copyPalette(p)">
+          <div class="palette-colors"><div v-for="c in p.colors" :key="c" class="palette-color" :style="{background: c}"></div></div>
+          <div class="palette-info"><div class="palette-name">{{ p.name }}</div><div class="palette-desc">{{ p.desc }}</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 尺寸速查 ═══ -->
+    <div v-if="currentPage === 'dimensions'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">人体工学尺寸速查</div></div></div>
+
+      <!-- 搜索 -->
+      <div style="margin-bottom:20px">
+        <input class="form-input" v-model="dimSearch" placeholder="搜索尺寸（如：沙发、台面、衣柜...）" style="max-width:400px">
+      </div>
+
+      <!-- 空间选择 -->
+      <div class="filter-bar" style="margin-bottom:20px">
+        <button v-for="cat in dimensionData" :key="cat.name" :class="['filter-btn', {active: dimFilter===cat.name}]" @click="dimFilter=cat.name">{{ cat.icon }} {{ cat.name }}</button>
+        <button :class="['filter-btn', {active: dimFilter==='全部'}]" @click="dimFilter='全部'">全部</button>
+      </div>
+
+      <div class="dimension-grid">
+        <div v-for="cat in filteredDimensions" :key="cat.name" class="dim-card">
+          <h4>{{ cat.icon }} {{ cat.name }}</h4>
+          <div v-for="item in cat.items" :key="item.label" class="dim-item"><span class="dim-label">{{ item.label }}</span><span class="dim-value">{{ item.value }}</span></div>
+        </div>
+      </div>
+      <div v-if="filteredDimensions.length===0" class="empty">未找到匹配的尺寸</div>
+
+      <!-- 常用速查表 -->
+      <div style="margin-top:24px;background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">
+        <div style="font-size:15px;font-weight:600;margin-bottom:16px">常用速查</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">
+          <div style="text-align:center;padding:16px;background:#f7f8fa;border-radius:8px">
+            <div style="font-size:24px;font-weight:700;color:var(--primary)">2.7m</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:4px">建议层高</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:#f7f8fa;border-radius:8px">
+            <div style="font-size:24px;font-weight:700;color:var(--green)">90cm</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:4px">最小通道宽度</div>
+          </div>
+          <div style="text-align:center;padding:16px;background:#f7f8fa;border-radius:8px">
+            <div style="font-size:24px;font-weight:700;color:var(--gold)">85cm</div>
+            <div style="font-size:12px;color:var(--text-3);margin-top:4px">操作台面高度</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══ 报价估算 ═══ -->
+    <div v-if="currentPage === 'pricing'">
+      <div class="page-header"><div style="display:flex;align-items:center;gap:12px"><button class="back-btn" @click="currentPage='dashboard'">← 返回</button><div class="page-title">快速报价估算</div></div></div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+        <div style="background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">
+          <div style="font-size:15px;font-weight:600;margin-bottom:20px">输入参数</div>
+          <div class="form-item"><label class="form-label">面积 (㎡)</label><input class="form-input" v-model.number="priceCalc.area" type="number" placeholder="100"></div>
+          <div class="form-item"><label class="form-label">风格</label>
+            <select class="form-select" v-model="priceCalc.style">
+              <option value="modern">现代简约</option><option value="scandinavian">北欧风</option>
+              <option value="japandi">侘寂</option><option value="chinese">新中式</option>
+              <option value="french">法式</option><option value="industrial">工业风</option>
+            </select>
+          </div>
+          <div class="form-item"><label class="form-label">档次</label>
+            <div style="display:flex;gap:8px">
+              <button v-for="g in [{id:'economy',n:'经济',m:800},{id:'standard',n:'标准',m:1500},{id:'premium',n:'高端',m:2800},{id:'luxury',n:'奢华',m:5000}]"
+                      :class="['mode-btn', {active: priceCalc.grade===g.id}]" @click="priceCalc.grade=g.id; priceCalc.multiplier=g.m">{{ g.n }}</button>
+            </div>
+          </div>
+          <div class="form-item"><label class="form-label">特殊需求</label>
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              <span v-for="s in [{id:'kitchen',n:'厨房翻新',add:20000},{id:'bathroom',n:'卫生间翻新',add:15000},{id:'smart',n:'智能家居',add:30000},{id:'custom',n:'定制柜体',add:25000}]"
+                    :class="['style-chip', {active: priceCalc.extras.includes(s.id)}]"
+                    @click="toggleExtra(s.id)">{{ s.n }}</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="background:var(--white);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow)">
+          <div style="font-size:15px;font-weight:600;margin-bottom:20px">估算结果</div>
+          <div style="text-align:center;padding:24px;background:linear-gradient(135deg,#e8f3ff,#f0f5ff);border-radius:12px;margin-bottom:20px">
+            <div style="font-size:12px;color:var(--text-3);margin-bottom:8px">预估总价</div>
+            <div style="font-size:36px;font-weight:700;color:var(--primary)">¥{{ estimatedTotal.toLocaleString() }}</div>
+            <div style="font-size:13px;color:var(--text-2);margin-top:8px">约 ¥{{ Math.round(estimatedTotal/(priceCalc.area||1)).toLocaleString() }}/㎡</div>
+          </div>
+          <div style="font-size:13px;color:var(--text-2);line-height:1.8">
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span>硬装基础</span><span style="font-weight:500">¥{{ baseCost.toLocaleString() }}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span>风格系数调整</span><span style="font-weight:500">{{ styleMultiplier }}x</span></div>
+            <div v-if="extrasCost>0" style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid #f5f5f5"><span>特殊需求</span><span style="font-weight:500">¥{{ extrasCost.toLocaleString() }}</span></div>
+            <div style="display:flex;justify-content:space-between;padding:12px 0;font-weight:600;font-size:15px;border-top:2px solid var(--border)"><span>合计</span><span style="color:var(--primary)">¥{{ estimatedTotal.toLocaleString() }}</span></div>
+          </div>
+          <div style="margin-top:16px;padding:12px;background:#fff7e6;border-radius:8px;font-size:12px;color:#faad14">
+            * 仅供参考，实际报价需根据现场情况、材料选择、施工难度等因素调整
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 搜索结果 -->
+    <div v-if="globalSearch && searchResults.length">
+      <div class="section-card"><div class="section-header"><div class="section-title">搜索结果 · {{ searchResults.length }} 条</div></div>
+        <div class="section-body"><div v-for="r in searchResults" class="list-row" @click="r.action()"><div class="list-info"><div class="list-name">{{ r.title }}</div><div class="list-sub">{{ r.sub }}</div></div><span class="status status-blue">{{ r.type }}</span></div></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+<script src="/static/js/app.js?v=13.0"></script>
+</body>
+</html>

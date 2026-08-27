@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>注册 - 路焉识设计工作站</title>
+  <link rel="stylesheet" href="/static/css/login.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1677ff">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">路</div>
+        <div class="login-title">注册账号</div>
+        <div class="login-subtitle">创建您的设计工作站账号</div>
+      </div>
+      
+      <div id="error-message" class="error-message" style="display: none;"></div>
+      <div id="success-message" class="success-message" style="display: none;"></div>
+      
+      <form class="login-form" onsubmit="handleRegister(event)">
+        <div class="form-group">
+          <label class="form-label">姓名</label>
+          <input type="text" id="name" class="form-input" placeholder="请输入您的姓名" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input type="tel" id="phone" class="form-input" placeholder="请输入手机号" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" id="password" class="form-input" placeholder="请设置密码（至少6位）" required minlength="6">
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">确认密码</label>
+          <input type="password" id="confirm-password" class="form-input" placeholder="请再次输入密码" required>
+        </div>
+        
+        <button type="submit" class="login-button" id="register-btn">注册</button>
+      </form>
+      
+      <div class="login-footer">
+        已有账号？<a href="/login.html" class="login-link">立即登录</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API 地址配置
+    const API_BASE = window.location.origin;
+    
+    // 注册处理
+    async function handleRegister(event) {
+      event.preventDefault();
+      
+      const name = document.getElementById('name').value;
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const confirmPassword = document.getElementById('confirm-password').value;
+      const registerBtn = document.getElementById('register-btn');
+      const errorMsg = document.getElementById('error-message');
+      const successMsg = document.getElementById('success-message');
+      
+      // 隐藏消息
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+      
+      // 验证密码
+      if (password !== confirmPassword) {
+        errorMsg.textContent = '两次输入的密码不一致';
+        errorMsg.style.display = 'block';
+        return;
+      }
+      
+      // 禁用按钮
+      registerBtn.disabled = true;
+      registerBtn.textContent = '注册中...';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, phone, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          successMsg.textContent = '注册成功！正在跳转到登录页面...';
+          successMsg.style.display = 'block';
+          
+          // 3秒后跳转到登录页面
+          setTimeout(() => {
+            window.location.href = '/login.html';
+          }, 3000);
+        } else {
+          errorMsg.textContent = data.detail || '注册失败';
+          errorMsg.style.display = 'block';
+        }
+      } catch (error) {
+        errorMsg.textContent = '网络错误，请稍后重试';
+        errorMsg.style.display = 'block';
+      } finally {
+        registerBtn.disabled = false;
+        registerBtn.textContent = '注册';
+      }
+    }
+  </script>
+</body>
+</html>

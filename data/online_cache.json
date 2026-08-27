@@ -1,0 +1,70 @@
+{
+  "inspirations": [
+    {
+      "title": "波西米亚风格 #1",
+      "description": "来自 Unsplash 的 波西米亚风格 设计灵感",
+      "image_url": "https://source.unsplash.com/random/679x429/?bohemian+room&sig=5182",
+      "tags": [
+        "波西米亚",
+        "混搭",
+        "色彩",
+        "方案1"
+      ],
+      "category": "风格",
+      "source": "Unsplash"
+    },
+    {
+      "title": "波西米亚风格 #2",
+      "description": "来自 Unsplash 的 波西米亚风格 设计灵感",
+      "image_url": "https://source.unsplash.com/random/695x528/?bohemian+room&sig=2839",
+      "tags": [
+        "波西米亚",
+        "混搭",
+        "色彩",
+        "方案2"
+      ],
+      "category": "风格",
+      "source": "Unsplash"
+    },
+    {
+      "title": "波西米亚风格 #3",
+      "description": "来自 Unsplash 的 波西米亚风格 设计灵感",
+      "image_url": "https://source.unsplash.com/random/679x510/?bohemian+room&sig=4588",
+      "tags": [
+        "波西米亚",
+        "混搭",
+        "色彩",
+        "方案3"
+      ],
+      "category": "风格",
+      "source": "Unsplash"
+    },
+    {
+      "title": "波西米亚风格 #4",
+      "description": "来自 Unsplash 的 波西米亚风格 设计灵感",
+      "image_url": "https://source.unsplash.com/random/634x542/?bohemian+room&sig=7400",
+      "tags": [
+        "波西米亚",
+        "混搭",
+        "色彩",
+        "方案4"
+      ],
+      "category": "风格",
+      "source": "Unsplash"
+    },
+    {
+      "title": "波西米亚风格 #5",
+      "description": "来自 Unsplash 的 波西米亚风格 设计灵感",
+      "image_url": "https://source.unsplash.com/random/735x485/?bohemian+room&sig=9491",
+      "tags": [
+        "波西米亚",
+        "混搭",
+        "色彩",
+        "方案5"
+      ],
+      "category": "风格",
+      "source": "Unsplash"
+    }
+  ],
+  "last_update": "2026-08-26T18:42:21.946189"
+}

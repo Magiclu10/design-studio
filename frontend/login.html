@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 - 路焉识设计工作站</title>
+  <link rel="stylesheet" href="/static/css/login.css">
+  <link rel="manifest" href="/manifest.json">
+  <meta name="theme-color" content="#1677ff">
+</head>
+<body>
+  <div class="login-page">
+    <div class="login-card">
+      <div class="login-header">
+        <div class="login-logo">路</div>
+        <div class="login-title">设计工作站</div>
+        <div class="login-subtitle">室内设计AI工作台</div>
+      </div>
+      
+      <div id="error-message" class="error-message" style="display: none;"></div>
+      <div id="success-message" class="success-message" style="display: none;"></div>
+      
+      <form class="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <input type="tel" id="phone" class="form-input" placeholder="请输入手机号" required>
+        </div>
+        
+        <div class="form-group">
+          <label class="form-label">密码</label>
+          <input type="password" id="password" class="form-input" placeholder="请输入密码" required>
+        </div>
+        
+        <button type="submit" class="login-button" id="login-btn">登录</button>
+      </form>
+      
+      <div class="login-footer">
+        还没有账号？<a href="/register.html" class="login-link">立即注册</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // API 地址配置
+    const API_BASE = window.location.origin;
+    
+    // 登录处理
+    async function handleLogin(event) {
+      event.preventDefault();
+      
+      const phone = document.getElementById('phone').value;
+      const password = document.getElementById('password').value;
+      const loginBtn = document.getElementById('login-btn');
+      const errorMsg = document.getElementById('error-message');
+      const successMsg = document.getElementById('success-message');
+      
+      // 隐藏消息
+      errorMsg.style.display = 'none';
+      successMsg.style.display = 'none';
+      
+      // 禁用按钮
+      loginBtn.disabled = true;
+      loginBtn.textContent = '登录中...';
+      
+      try {
+        const response = await fetch(`${API_BASE}/api/auth/login`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ phone, password }),
+        });
+        
+        const data = await response.json();
+        
+        if (response.ok) {
+          // 保存 token 和用户信息
+          localStorage.setItem('token', data.token);
+          localStorage.setItem('user', JSON.stringify(data.user));
+          
+          // 跳转到主页
+          window.location.href = '/';
+        } else {
+          errorMsg.textContent = data.detail || '登录失败';
+          errorMsg.style.display = 'block';
+        }
+      } catch (error) {
+        errorMsg.textContent = '网络错误，请稍后重试';
+        errorMsg.style.display = 'block';
+      } finally {
+        loginBtn.disabled = false;
+        loginBtn.textContent = '登录';
+      }
+    }
+  </script>
+</body>
+</html>
