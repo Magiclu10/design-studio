@@ -1,25 +1,15 @@
-"""数据库模型 - 支持 SQLite 和 PostgreSQL（带 SSL）。"""
+"""数据库模型 - 使用 SQLite（Railway 本地存储）。"""
 from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, ForeignKey, Boolean, JSON
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, relationship
 from datetime import datetime
 import os
 
-# 数据库配置
+# 数据库配置 - 使用 SQLite
 DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./data/studio.db")
 
 # 创建引擎
-if DATABASE_URL.startswith("sqlite"):
-    engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-elif DATABASE_URL.startswith("postgresql"):
-    # Supabase PostgreSQL 需要 SSL
-    if "sslmode" not in DATABASE_URL:
-        separator = "&" if "?" in DATABASE_URL else "?"
-        DATABASE_URL = f"{DATABASE_URL}{separator}sslmode=require"
-    engine = create_engine(DATABASE_URL, pool_pre_ping=True, pool_recycle=300)
-else:
-    engine = create_engine(DATABASE_URL)
-
+engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
@@ -32,6 +22,7 @@ def get_db():
 
 def init_db():
     try:
+        os.makedirs("data", exist_ok=True)
         Base.metadata.create_all(bind=engine)
         print(f"Database connected: {DATABASE_URL[:50]}...")
     except Exception as e:
